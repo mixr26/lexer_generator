@@ -217,13 +217,24 @@ def tokenize_regex(regex):
             else:
                 token.type = TokenType.KLEENE
 
+        # check whether the interval is correctly formed
+        if token.type == TokenType.INTERVAL:
+            if (token.lexeme[1] > token.lexeme[3]) or \
+                    (token.lexeme[1].isupper() and token.lexeme[3].islower()):
+                token.type = TokenType.ERROR
+                break
+
+        # strip the ID token of the unnecessary curly braces
+        if token.type == TokenType.ID:
+            token.lexeme = token.lexeme[1:len(token.lexeme) - 1]
+
         # concatenation operator is implicit (there is no input character for concatenation), but it would make the job
         # easier for the parser if it were explicit
         # we insert the concatenation operator token where appropriate
         if len(token_list) > 0:
             prev = token_list[len(token_list) - 1]
             if token.type in (TokenType.CHAR, TokenType.INTERVAL, TokenType.ID, TokenType.OPAR) and \
-                    prev.type in (TokenType.CHAR, TokenType.INTERVAL, TokenType.ID, TokenType.CPAR):
+                    prev.type in (TokenType.CHAR, TokenType.INTERVAL, TokenType.ID, TokenType.CPAR, TokenType.KLEENE):
                 token_list.append(Token(TokenType.CONCAT, '^', False))
         token_list.append(token)
 
@@ -236,6 +247,6 @@ def tokenize_regex(regex):
 
 
 if __name__ == "__main__":
-    tokenize_regex("[A-Z](abc)|a*")
+    tokenize_regex("[1-5](abc)|a*{a}")
     for token in token_list:
         print(token)
