@@ -156,6 +156,7 @@ def next_char(regex):
 # extract the next regex token
 # performs the simulation of the DFA
 def get_next_token(regex):
+    global token_type_table
     lexeme = ''
     state = States.S0
     old_state = States.S0
@@ -164,7 +165,6 @@ def get_next_token(regex):
         [peek, end, regex] = next_char(regex)
         if end:
             if is_accepting_state(state):
-                global token_type_table
                 return Token(token_type_table[state.value], lexeme, True), regex
             else:
                 return Token(TokenType.ERROR, '', True)
@@ -174,11 +174,11 @@ def get_next_token(regex):
         old_state = state
         state = transition_matrix[state.value][character_class(peek).value]
 
+    # rollback
     regex = peek + regex
     lexeme = lexeme[0:len(lexeme)-1]
 
     if is_accepting_state(old_state):
-        global token_type_table
         return Token(token_type_table[old_state.value], lexeme, False), regex
     else:
         return Token(TokenType.ERROR, '', True)
