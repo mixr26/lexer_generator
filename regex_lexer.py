@@ -143,10 +143,6 @@ class Token:
         return "Type: " + str(self.type) + " Lexeme: " + self.lexeme
 
 
-# after the tokenize_regex() call, contains the list of tokens if the tokenization was successful
-token_list = []
-
-
 # return the next input character
 def next_char(regex):
     if len(regex) > 0:
@@ -190,7 +186,6 @@ def get_next_token(regex):
 
 # populates token_list with regex tokens
 def tokenize_regex(regex):
-    global token_list
     token_list = []
 
     while True:
@@ -236,8 +231,10 @@ def tokenize_regex(regex):
         print("Ill-formed regex!")
         token_list = []
 
+    return token_list
+
 
 if __name__ == "__main__":
-    tokenize_regex("[1-5](abc)|a*{a}")
+    token_list = tokenize_regex("[1-5](abc)|a*{a}")
     for token in token_list:
         print(token)
