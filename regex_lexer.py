@@ -2,6 +2,7 @@ from enum import Enum
 from numpy import *
 
 
+# states of the regex lexical analyzer DFA
 class States(Enum):
     SE = 0
     S0 = 1
@@ -22,6 +23,7 @@ class States(Enum):
     S15 = 16
 
 
+# classes of expected input characters
 class CharClass(Enum):
     char = 0
     digit = 1
@@ -37,6 +39,8 @@ class CharClass(Enum):
     escape = 11
 
 
+# transition matrix of the regex lexical analyzer DFA
+# given the current state and the next input character, return the next DFA state
 transition_matrix = array([
     [States.SE, States.SE, States.SE, States.SE, States.SE, States.SE, States.SE, States.SE, States.SE, States.SE,
      States.SE, States.SE],
@@ -108,6 +112,7 @@ def character_class(c):
         return CharClass.char
 
 
+# types of tokens for the regex lexical analyzer
 class TokenType(Enum):
     ID = 0
     INTERVAL = 1
@@ -121,11 +126,13 @@ class TokenType(Enum):
     ERROR = 9
 
 
+# given the DFA state, return ERROR if it is not an accepting state, else return the token type for the state
 token_type_table = [TokenType.ERROR, TokenType.ERROR, TokenType.ERROR, TokenType.ID, TokenType.ERROR, TokenType.ERROR,
                     TokenType.ERROR, TokenType.INTERVAL, TokenType.ERROR, TokenType.ERROR, TokenType.INTERVAL,
                     TokenType.CHAR, TokenType.SPECIAL, TokenType.ERROR, TokenType.CHAR]
 
 
+# token class for the regex lexical analyzer
 class Token:
     def __init__(self, type, lexeme, end):
         self.type = type
@@ -136,10 +143,13 @@ class Token:
         return "Type: " + str(self.type) + " Lexeme: " + self.lexeme
 
 
+# holds the regex being processed by the lexical analyzer
 global_regex = ''
+# after the tokenize_regex() call, contains the list of tokens if the tokenization was successful
 token_list = []
 
 
+# return the next input character
 def next_char():
     global global_regex
     if len(global_regex) > 0:
@@ -155,6 +165,8 @@ def rollback(c):
     global_regex = c + global_regex
 
 
+# extract the next regex token
+# performs the simulation of the DFA
 def get_next_token():
     global token_type_table
     lexeme = ''
@@ -183,6 +195,7 @@ def get_next_token():
         return Token(TokenType.ERROR, '', True)
 
 
+# populates token_list with regex tokens
 def tokenize_regex(regex):
     global global_regex
     global token_list
@@ -192,6 +205,8 @@ def tokenize_regex(regex):
     while True:
         token = get_next_token()
 
+        # to reduce the number of DFA states, some special characters which should have different types were labeled as
+        # SPECIAL
         if token.type == TokenType.SPECIAL:
             if token.lexeme == '(':
                 token.type = TokenType.OPAR
@@ -202,6 +217,9 @@ def tokenize_regex(regex):
             else:
                 token.type = TokenType.KLEENE
 
+        # concatenation operator is implicit (there is no input character for concatenation), but it would make the job
+        # easier for the parser if it were explicit
+        # we insert the concatenation operator token where appropriate
         if len(token_list) > 0:
             prev = token_list[len(token_list) - 1]
             if token.type in (TokenType.CHAR, TokenType.INTERVAL, TokenType.ID, TokenType.OPAR) and \
