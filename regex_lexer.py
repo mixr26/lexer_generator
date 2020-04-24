@@ -143,41 +143,33 @@ class Token:
         return "Type: " + str(self.type) + " Lexeme: " + self.lexeme
 
 
-# holds the regex being processed by the lexical analyzer
-global_regex = ''
 # after the tokenize_regex() call, contains the list of tokens if the tokenization was successful
 token_list = []
 
 
 # return the next input character
-def next_char():
-    global global_regex
-    if len(global_regex) > 0:
-        peek = global_regex[0:1]
-        global_regex = global_regex[1:len(global_regex)]
-        return peek, False
+def next_char(regex):
+    if len(regex) > 0:
+        peek = regex[0:1]
+        regex = regex[1:len(regex)]
+        return peek, False, regex
     else:
-        return '', True
-
-
-def rollback(c):
-    global global_regex
-    global_regex = c + global_regex
+        return '', True, regex
 
 
 # extract the next regex token
 # performs the simulation of the DFA
-def get_next_token():
-    global token_type_table
+def get_next_token(regex):
     lexeme = ''
     state = States.S0
     old_state = States.S0
 
     while state != States.SE:
-        [peek, end] = next_char()
+        [peek, end, regex] = next_char(regex)
         if end:
             if is_accepting_state(state):
-                return Token(token_type_table[state.value], lexeme, True)
+                global token_type_table
+                return Token(token_type_table[state.value], lexeme, True), regex
             else:
                 return Token(TokenType.ERROR, '', True)
 
@@ -186,24 +178,23 @@ def get_next_token():
         old_state = state
         state = transition_matrix[state.value][character_class(peek).value]
 
-    rollback(peek)
-    lexeme = lexeme[0:len(lexeme) - 1]
+    regex = peek + regex
+    lexeme = lexeme[0:len(lexeme)-1]
 
     if is_accepting_state(old_state):
-        return Token(token_type_table[old_state.value], lexeme, False)
+        global token_type_table
+        return Token(token_type_table[old_state.value], lexeme, False), regex
     else:
         return Token(TokenType.ERROR, '', True)
 
 
 # populates token_list with regex tokens
 def tokenize_regex(regex):
-    global global_regex
     global token_list
-    global_regex = regex
     token_list = []
 
     while True:
-        token = get_next_token()
+        (token, regex) = get_next_token(regex)
 
         # to reduce the number of DFA states, some special characters which should have different types were labeled as
         # SPECIAL
