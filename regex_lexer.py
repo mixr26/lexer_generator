@@ -143,6 +143,16 @@ class Token:
         return "Type: " + str(self.type) + " Lexeme: " + self.lexeme
 
 
+# lexical error exception
+class LexerError(Exception):
+    def __init__(self, message):
+        self.token = Token(TokenType.ERROR, '', True)
+        self.message = message
+
+    def __str__(self):
+        return self.message
+
+
 # return the next input character
 def next_char(regex):
     if len(regex) > 0:
@@ -151,6 +161,32 @@ def next_char(regex):
         return peek, False, regex
     else:
         return '', True, regex
+
+
+# finalize token
+def postprocess_token(token):
+    # to reduce the number of DFA states, some special characters which should have different types were labeled as
+    # SPECIAL
+    if token.type == TokenType.SPECIAL:
+        if token.lexeme == '(':
+            token.type = TokenType.OPAR
+        elif token.lexeme == ')':
+            token.type = TokenType.CPAR
+        elif token.lexeme == '|':
+            token.type = TokenType.UNION
+        else:
+            token.type = TokenType.KLEENE
+
+    if token.type == TokenType.INTERVAL:
+        if (token.lexeme[1] > token.lexeme[3]) or \
+                (token.lexeme[1].isupper() and token.lexeme[3].islower()):
+            raise LexerError("Ill-formed interval regex!")
+
+    # strip the ID token of the unnecessary curly braces
+    if token.type == TokenType.ID:
+        token.lexeme = token.lexeme[1:len(token.lexeme) - 1]
+
+    return token
 
 
 # extract the next regex token
@@ -165,9 +201,9 @@ def get_next_token(regex):
         [peek, end, regex] = next_char(regex)
         if end:
             if is_accepting_state(state):
-                return Token(token_type_table[state.value], lexeme, True), regex
+                return postprocess_token(Token(token_type_table[state.value], lexeme, True)), regex
             else:
-                return Token(TokenType.ERROR, '', True)
+                raise LexerError("Ill-formed regex!")
 
         lexeme += peek
         global transition_matrix
@@ -179,40 +215,25 @@ def get_next_token(regex):
     lexeme = lexeme[0:len(lexeme)-1]
 
     if is_accepting_state(old_state):
-        return Token(token_type_table[old_state.value], lexeme, False), regex
+        return postprocess_token(Token(token_type_table[old_state.value], lexeme, False)), regex
     else:
-        return Token(TokenType.ERROR, '', True)
+        raise LexerError("Ill-formed regex!")
 
 
-# populates token_list with regex tokens
+# lexing analysis driver
+# if successful, returns the list of tokens
+# if unsuccessful, returns the list with a sole ERROR token
 def tokenize_regex(regex):
     token_list = []
 
     while True:
-        (token, regex) = get_next_token(regex)
-
-        # to reduce the number of DFA states, some special characters which should have different types were labeled as
-        # SPECIAL
-        if token.type == TokenType.SPECIAL:
-            if token.lexeme == '(':
-                token.type = TokenType.OPAR
-            elif token.lexeme == ')':
-                token.type = TokenType.CPAR
-            elif token.lexeme == '|':
-                token.type = TokenType.UNION
-            else:
-                token.type = TokenType.KLEENE
-
-        # check whether the interval is correctly formed
-        if token.type == TokenType.INTERVAL:
-            if (token.lexeme[1] > token.lexeme[3]) or \
-                    (token.lexeme[1].isupper() and token.lexeme[3].islower()):
-                token.type = TokenType.ERROR
-                break
-
-        # strip the ID token of the unnecessary curly braces
-        if token.type == TokenType.ID:
-            token.lexeme = token.lexeme[1:len(token.lexeme) - 1]
+        try:
+            (token, regex) = get_next_token(regex)
+        except LexerError as le:
+            print(le)
+            token_list.clear()
+            token_list.append(le.token)
+            break
 
         # concatenation operator is implicit (there is no input character for concatenation), but it would make the job
         # easier for the parser if it were explicit
@@ -227,14 +248,10 @@ def tokenize_regex(regex):
         if token.end:
             break
 
-    if token.type == TokenType.ERROR:
-        print("Ill-formed regex!")
-        token_list = []
-
     return token_list
 
 
 if __name__ == "__main__":
-    token_list = tokenize_regex("[1-5](abc)|a*{a}")
+    token_list = tokenize_regex("[1-5][a-b]|b*abc")
     for token in token_list:
         print(token)
