@@ -51,7 +51,7 @@ token_list = None
 # productions which represent operands of a regex expression (eg. factor) push the AST node which corresponds
 # to the operand on the stack
 # productions which represent operators of a regex expression (eg. concat) pop the right number of operands off
-# the stack, create an operator AST node, with popped operand nodes as children, and pushes the operator AST node
+# the stack, create an operator AST node with popped operand nodes as children, and push the operator AST node
 # back to the stack
 stack = []
 
