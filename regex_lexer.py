@@ -182,11 +182,24 @@ def postprocess_token(token):
                 (token.lexeme[1].isupper() and token.lexeme[3].islower()):
             raise LexerError("Ill-formed interval regex!")
 
-    # strip the ID token of the unnecessary curly braces
-    if token.type == TokenType.ID:
+    # strip the ID and INTERVAL tokens of the unnecessary braces
+    if token.type in (TokenType.ID, TokenType.INTERVAL):
         token.lexeme = token.lexeme[1:len(token.lexeme) - 1]
 
     return token
+
+
+# create a token list for an interval expression
+def postprocess_interval(token):
+    end = token.end
+    token_list = [(Token(TokenType.OPAR, '(', False))]
+    for i in range(ord(token.lexeme[0]), ord(token.lexeme[2]) + 1):
+        token_list.append(Token(TokenType.CHAR, chr(i), False))
+        if i != ord(token.lexeme[2]):
+            token_list.append(Token(TokenType.UNION, '|', False))
+    token_list.append(Token(TokenType.CPAR, ')', end))
+
+    return token_list
 
 
 # extract the next regex token
@@ -243,7 +256,12 @@ def tokenize_regex(regex):
             if token.type in (TokenType.CHAR, TokenType.INTERVAL, TokenType.ID, TokenType.OPAR) and \
                     prev.type in (TokenType.CHAR, TokenType.INTERVAL, TokenType.ID, TokenType.CPAR, TokenType.KLEENE):
                 token_list.append(Token(TokenType.CONCAT, '^', False))
+
         token_list.append(token)
+        if token.type == TokenType.INTERVAL:
+            token_list.pop()
+            for tok in postprocess_interval(token):
+                token_list.append(tok)
 
         if token.end:
             break
@@ -252,6 +270,6 @@ def tokenize_regex(regex):
 
 
 if __name__ == "__main__":
-    token_list = tokenize_regex("[1-5][a-b]|b*abc")
+    token_list = tokenize_regex("([1-5][a-b])x|b*abc")
     for token in token_list:
         print(token)
