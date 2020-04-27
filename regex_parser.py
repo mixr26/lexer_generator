@@ -156,6 +156,7 @@ def union():
 # after the unsuccessful parse, the sole node on the stack is an AST error node
 def parse(tokens):
     global stack, token_list
+    stack = []
     try:
         token_list = tokens
         # load the first lookahead token
@@ -166,8 +167,10 @@ def parse(tokens):
         stack.clear()
         stack.append(Node(NodeType.ERROR, ''))
 
+    return stack[0]
+
 
 if __name__ == "__main__":
     token_list = tokenize_regex("([1-2][a-b])x|b*abc")
-    parse(token_list)
-    print_tree_postorder(stack[0])
+    root = parse(token_list)
+    print_tree_postorder(root)
