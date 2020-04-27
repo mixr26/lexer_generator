@@ -5,12 +5,10 @@ from enum import Enum
 # node types for regex parser
 class NodeType(Enum):
     CHAR = 0
-    ID = 1
-    INTERVAL = 2
-    UNION = 3
-    KLEENE = 4
-    CONCAT = 5
-    ERROR = 6
+    UNION = 1
+    KLEENE = 2
+    CONCAT = 3
+    ERROR = 4
 
 
 # represents a node within the abstract syntax tree (AST)
@@ -41,6 +39,17 @@ class ParserError(Exception):
 
     def __str__(self):
         return self.message
+
+
+# dictionary of IDs
+# regex for every ID defined in the first stage should be hashed here, to be used in the second stage
+id_dict = {}
+
+
+# add a regex for an ID to the dictionary
+def add_id(id, regex):
+    global id_dict
+    id_dict[id] = regex
 
 
 # lookahead symbol for the parser
@@ -88,14 +97,15 @@ def factor():
         tmp = lookahead
         match(TokenType.CHAR)
         stack.append(Node(NodeType.CHAR, tmp.lexeme))
-    elif lookahead.type == TokenType.INTERVAL:
-        tmp = lookahead
-        match(TokenType.INTERVAL)
-        stack.append(Node(NodeType.INTERVAL, tmp.lexeme))
     elif lookahead.type == TokenType.ID:
         tmp = lookahead
         match(TokenType.ID)
-        stack.append(Node(NodeType.ID, tmp.lexeme))
+        # check whether the ID was previously defined
+        global id_dict
+        if tmp.lexeme in id_dict.keys():
+            stack.append(id_dict[tmp.lexeme])
+        else:
+            raise ParserError("ID " + tmp.lexeme + " was not previously defined!")
     else:
         raise ParserError("Parse error!")
 
@@ -154,10 +164,10 @@ def parse(tokens):
     except ParserError as pe:
         print(pe)
         stack.clear()
-        stack.append(Node(NodeType.ERROR))
+        stack.append(Node(NodeType.ERROR, ''))
 
 
 if __name__ == "__main__":
-    token_list = tokenize_regex("(a*|[b-c]){id}*")
+    token_list = tokenize_regex("([1-2][a-b])x|b*abc")
     parse(token_list)
     print_tree_postorder(stack[0])
