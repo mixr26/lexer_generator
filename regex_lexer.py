@@ -2,6 +2,10 @@ from enum import Enum
 from numpy import *
 
 
+# lexical analysis of regular expressions performed using a simple DFA simulation
+# if successful, it provides a list of tokens to the next stage of the program (parser)
+
+
 # states of the regex lexical analyzer DFA
 class States(Enum):
     SE = 0
