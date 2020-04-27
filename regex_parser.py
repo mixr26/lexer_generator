@@ -1,4 +1,4 @@
-from regex_lexer import tokenize_regex, Token, TokenType
+from regex_lexer import tokenize_regex, TokenType
 from enum import Enum
 
 
