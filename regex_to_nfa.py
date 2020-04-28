@@ -16,7 +16,7 @@ import matplotlib.pyplot as plt
 # thus, the transition matrix is sparse so I decided to leave out the empty transitions and implement every state as
 # a list of tuples whose first element is the input symbol of the transition, while the other elements (one or two) are
 # the outgoing states
-# first row of the matrix always represents the starting state of the DFA, while the last row represents the
+# first row of the matrix always represents the starting state of the NFA, while the last row represents the
 # accepting state
 #
 # [1] The Dragon Book, 2nd Ed, p. 161
@@ -48,7 +48,7 @@ def print_matrix(mat):
     print()
 
 
-# transform the simplest one-character expression (eg. 'a') to DFA
+# transform the simplest one-character expression (eg. 'a') to NFA
 def transform_simple_expression(expr):
     lexeme = expr.value
     return [
@@ -73,7 +73,7 @@ def offset_outgoing_states(mat, offset):
     return mat
 
 
-# create Kleene closure DFA
+# create Kleene closure NFA
 def transform_kleene(mat):
     # offset all the outgoing states by one, as we are inserting starting state as the first row of the matrix
     mat = offset_outgoing_states(mat, 1)
@@ -91,20 +91,20 @@ def transform_kleene(mat):
 
 def transform_concat(left, right):
     # offset the outgoing states in the right DFA matrix, as we are removing the first (starting) state from it
-    # and appending it to the left DFA matrix
+    # and appending it to the left NFA matrix
     right = offset_outgoing_states(right, len(left) - 1)
 
-    # remove the starting state from the right DFA matrix
+    # remove the starting state from the right NFA matrix
     start_state_right = right[0]
     right.remove(right[0])
 
-    # merge the old right DFA matrix starting state with the old left DFA matrix accepting state
+    # merge the old right DFA matrix starting state with the old left NFA matrix accepting state
     accept_index_left = len(left) - 1
     left[accept_index_left].clear()
     for in_sym in start_state_right:
         left[accept_index_left].append(in_sym)
 
-    # append the states in the right DFA matrix to the left DFA matrix
+    # append the states in the right NFA matrix to the left NFA matrix
     for state in right:
         left.append(state)
 
@@ -112,12 +112,12 @@ def transform_concat(left, right):
 
 
 def transform_union(left, right):
-    # offset the outgoing states of the left DFA matrix, as we are adding the starting state of the new DFA matrix
+    # offset the outgoing states of the left NFA matrix, as we are adding the starting state of the new DFA matrix
     # at the beginning
     left = offset_outgoing_states(left, 1)
 
-    # offset the outgoing states of the right DFA matrix, as we are appending it to the left DFA matrix (and also
-    # adding the starting state at the beginning of the left DFA matrix)
+    # offset the outgoing states of the right NFA matrix, as we are appending it to the left NFA matrix (and also
+    # adding the starting state at the beginning of the left NFA matrix)
     right = offset_outgoing_states(right, len(left) + 1)
 
     start_state_right = len(left) + 1
@@ -126,7 +126,7 @@ def transform_union(left, right):
     left[len(left) - 1][0].append(new_accept_state_index)
     right[len(right) - 1][0].append(new_accept_state_index)
 
-    # append the right DFA matrix to the left DFA matrix
+    # append the right NFA matrix to the left NFA matrix
     for state in right:
         left.append(state)
 
