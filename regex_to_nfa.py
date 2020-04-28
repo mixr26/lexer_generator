@@ -152,8 +152,38 @@ def regex_to_nfa(root):
         return transform_concat(*child_nfa)
 
 
+# since we generally have multiple regex pattern in the input program, describing different lexical categories,
+# we need a way to combine all the resulting NFAs into one, which will be transformed to DFA
+# we introduce a new starting state for the big NFA which has outgoing transitions on epsilon to starting states of
+# all the individual NFAs
+# alongside the new NFA transition matrix, function also returns a set of accepting states of all the individual NFAs
+def combine_nfas(nfas):
+    combined_nfa = [[['eps']]]
+    accepting_states = []
+    current_nfa_starting_state = 1
+    offset = 1
+    for nfa in nfas:
+        nfa = offset_outgoing_states(nfa, offset)
+        for state in nfa:
+            combined_nfa.append(state)
+        combined_nfa[0][0].append(current_nfa_starting_state)
+        current_nfa_starting_state += len(nfa)
+        offset += len(nfa)
+        accepting_states.append(len(combined_nfa) - 1)
+
+    return combined_nfa, accepting_states
+
+
 if __name__ == "__main__":
-    token_list_a = tokenize_regex('a|b|c|d|f*')
-    root_a = parse(token_list_a)
-    mat = regex_to_nfa(root_a)
-    print_matrix(mat)
+    token_list_1 = tokenize_regex('a')
+    token_list_2 = tokenize_regex('b')
+    root_1 = parse(token_list_1)
+    root_2 = parse(token_list_2)
+    mat_1 = regex_to_nfa(root_1)
+    print_matrix(mat_1)
+    mat_2 = regex_to_nfa(root_2)
+    print_matrix(mat_2)
+    (mat, acc_states) = combine_nfas([mat_1, mat_2])
+    print(mat)
+    print(acc_states)
+    #visualize_graph(mat)
