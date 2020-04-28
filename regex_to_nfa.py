@@ -140,7 +140,7 @@ def transform_union(left, right):
 # regex to NFA transformation driver
 # essentially a postorder walk over the regex AST
 def regex_to_nfa(root):
-    child_nfa = list(map(lambda x: regex_to_nfa(x), root.children))
+    child_nfa = [regex_to_nfa(child) for child in root.children]
 
     if root.type == NodeType.CHAR:
         return transform_simple_expression(root)
