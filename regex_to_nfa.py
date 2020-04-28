@@ -1,4 +1,4 @@
-from regex_parser import parse
+from regex_parser import parse, NodeType
 from regex_lexer import tokenize_regex
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -137,20 +137,23 @@ def transform_union(left, right):
     return left
 
 
+# regex to NFA transformation driver
+# essentially a postorder walk over the regex AST
+def regex_to_nfa(root):
+    child_nfa = list(map(lambda x: regex_to_nfa(x), root.children))
+
+    if root.type == NodeType.CHAR:
+        return transform_simple_expression(root)
+    elif root.type == NodeType.KLEENE:
+        return transform_kleene(*child_nfa)
+    elif root.type == NodeType.UNION:
+        return transform_union(*child_nfa)
+    else:
+        return transform_concat(*child_nfa)
+
+
 if __name__ == "__main__":
-    token_list_a = tokenize_regex('a')
-    token_list_b = tokenize_regex('b')
-    token_list_c = tokenize_regex('c')
+    token_list_a = tokenize_regex('a|b|c|d|f*')
     root_a = parse(token_list_a)
-    root_b = parse(token_list_b)
-    root_c = parse(token_list_c)
-    a = transform_simple_expression(root_a)
-    b = transform_simple_expression(root_b)
-    c = transform_simple_expression(root_c)
-    #visualize_graph(a)
-    kleene = transform_kleene(a)
-    print_matrix(kleene)
-    #visualize_graph(kleene)
-    kleene2 = transform_kleene(b)
-    kleene = transform_union(kleene, kleene2)
-    visualize_graph(kleene)
+    mat = regex_to_nfa(root_a)
+    print_matrix(mat)
