@@ -160,6 +160,11 @@ def regex_to_nfa(root):
 def combine_nfas(nfas):
     combined_nfa = [[['eps']]]
     accepting_states = {}
+
+    # if there is only one pattern in the list, don't bother
+    if len(nfas) == 1:
+        return nfas[0][1],  {len(nfas[0][1]) - 1: nfas[0][0]}
+
     current_nfa_starting_state = 1
     offset = 1
     for pair in nfas:
