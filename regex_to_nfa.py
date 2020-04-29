@@ -159,17 +159,18 @@ def regex_to_nfa(root):
 # alongside the new NFA transition matrix, function also returns a set of accepting states of all the individual NFAs
 def combine_nfas(nfas):
     combined_nfa = [[['eps']]]
-    accepting_states = []
+    accepting_states = {}
     current_nfa_starting_state = 1
     offset = 1
-    for nfa in nfas:
+    for pair in nfas:
+        nfa = pair[1]
         nfa = offset_outgoing_states(nfa, offset)
         for state in nfa:
             combined_nfa.append(state)
         combined_nfa[0][0].append(current_nfa_starting_state)
         current_nfa_starting_state += len(nfa)
         offset += len(nfa)
-        accepting_states.append(len(combined_nfa) - 1)
+        accepting_states[len(combined_nfa) - 1] = pair[0]
 
     return combined_nfa, accepting_states
 
