@@ -34,7 +34,6 @@ def create_header_and_emit_manifest(manifest, states_num):
         # emit Token class
         header.writelines([
             "class Token {\n",
-            "\tstatic uint32_t token_class;\n",
             "\tstd::string lexeme;\n",
             "\t// Is this the last token of the stream.\n",
             "\tbool last;\n",
@@ -69,6 +68,8 @@ def create_header_and_emit_manifest(manifest, states_num):
 
         header.writelines([
             "class Lexer {\n",
+            "\tstatic uint32_t token_class;\n",
+            "\tstatic bool is_last_token;\n",
             "\t// Input file.\n",
             "\tstd::ifstream filestream;\n",
             "\t// Current DFA state.\n",
