@@ -87,7 +87,7 @@ def nfa_to_dfa(nfa, pattern_acc_states):
     # DFA transition matrix
     dtran = []
     # list of accepting DFA states
-    acc_states = []
+    acc_states = set()
     while True:
         curr_index = 0
         curr_state = None
@@ -110,7 +110,7 @@ def nfa_to_dfa(nfa, pattern_acc_states):
                 # state, then this DFA state should be marked as accepting too
                 for nfa_state in new_state:
                     if nfa_state in pattern_acc_states.keys():
-                        acc_states.append(dstates.index(new_state))
+                        acc_states.add(dstates.index(new_state))
             dtran[curr_index].append([sym, dstates.index(new_state)])
 
     return dstates, dtran, acc_states
@@ -119,20 +119,20 @@ def nfa_to_dfa(nfa, pattern_acc_states):
 if __name__ == "__main__":
     token_list_1 = tokenize_regex('a')
     token_list_2 = tokenize_regex('abb')
-    token_list_3 = tokenize_regex('a*b')
     root_1 = parse(token_list_1)
     root_2 = parse(token_list_2)
-    root_3 = parse(token_list_3)
     mat_1 = regex_to_nfa(root_1)
-    print_matrix(mat_1)
+    #print_matrix(mat_1)
     mat_2 = regex_to_nfa(root_2)
-    print_matrix(mat_2)
+    #print_matrix(mat_2)
     mat_3 = [[['a', 0], ['b', 1], ['eps']], [['b', 1], ['eps']]]
-    print_matrix(mat_3)
+    #print_matrix(mat_3)
     pattern_dict = [('pat1', mat_1), ('pat2', mat_2), ('pat3', mat_3)]
 
     (nfa, pattern_acc_states) = combine_nfas(pattern_dict)
-    print_matrix(nfa)
+    #print_matrix(nfa)
 
     (dstates, dtran, dfa_acc_states) = nfa_to_dfa(nfa, pattern_acc_states)
     print_dfa(dstates, dtran, dfa_acc_states)
+    print(pattern_acc_states)
+    print(dfa_acc_states)
