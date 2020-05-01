@@ -66,12 +66,12 @@ def move(states, sym, nfa):
 
 # return the set of input symbols (excluding epsilon) for which the provided NFA states have outgoing transitions
 def compute_possible_in_syms(states, nfa):
-    syms = set()
+    syms = []
     for state_index in states:
         state = nfa[state_index]
         for in_sym in state:
-            if in_sym[0] != 'eps':
-                syms.add(in_sym[0])
+            if in_sym[0] != 'eps' and in_sym[0] not in syms:
+                syms.append(in_sym[0])
     return syms
 
 
@@ -87,7 +87,7 @@ def nfa_to_dfa(nfa, pattern_acc_states):
     # DFA transition matrix
     dtran = []
     # list of accepting DFA states
-    acc_states = set()
+    acc_states = []
     while True:
         curr_index = 0
         curr_state = None
@@ -109,8 +109,9 @@ def nfa_to_dfa(nfa, pattern_acc_states):
                 # if at least one NFA state from the set of NFA states that represent this DFA state is an accepting
                 # state, then this DFA state should be marked as accepting too
                 for nfa_state in new_state:
-                    if nfa_state in pattern_acc_states.keys():
-                        acc_states.add(dstates.index(new_state))
+                    if nfa_state in pattern_acc_states.keys() and \
+                            not dstates.index(new_state) in acc_states:
+                        acc_states.append(dstates.index(new_state))
             dtran[curr_index].append([sym, dstates.index(new_state)])
 
     return dstates, dtran, acc_states
