@@ -1,3 +1,4 @@
+from pattern_descriptor import PatternDesc
 from regex_parser import parse
 from regex_lexer import tokenize_regex
 from regex_to_nfa import combine_nfas, regex_to_nfa, print_matrix
@@ -76,10 +77,10 @@ def compute_possible_in_syms(states, nfa):
 
 
 # perform NFA to DFA conversion using the subset creation algorithm
-# it requires an NFA transition matrix and a list of (regex pattern, accepting state of the NFA for that pattern) pairs
-# as input
-# returns the set of new DFA states, DFA transition matrix, and the list of accepting DFA states
-def nfa_to_dfa(nfa, pattern_acc_states):
+# it requires an NFA transition matrix and a list of PatternDesc objects as input
+# returns the set of new DFA states, DFA transition matrix, the list of accepting DFA states and the list of
+# PatternDesc objects to which we have attached lists of accepting DFA states which recognize them
+def nfa_to_dfa(nfa, pattern_descs):
     # list of DFA states
     dstates = [eps_closure([0], nfa)]
     # additional list which contains 'marked' flags for each DFA state
@@ -109,12 +110,22 @@ def nfa_to_dfa(nfa, pattern_acc_states):
                 # if at least one NFA state from the set of NFA states that represent this DFA state is an accepting
                 # state, then this DFA state should be marked as accepting too
                 for nfa_state in new_state:
-                    if nfa_state in pattern_acc_states.keys() and \
-                            not dstates.index(new_state) in acc_states:
-                        acc_states.append(dstates.index(new_state))
+                    for patt_desc in pattern_descs:
+                        if nfa_state == patt_desc.nfa_acc_state:
+                            acc_states.append(dstates.index(new_state))
+                            # since some accepting DFA states contain more than one accepting NFA state, we associate
+                            # that DFA state with the earliest pattern whose NFA state it contains
+                            # we exploit the fact that the NFA states in new_state are ordered beginning from the
+                            # earliest, so we can associate new_state DFA state with the pattern of the first accepting
+                            # NFA state it contains
+                            patt_desc.dfa_acc_states.append(dstates.index(new_state))
+                            break
+                    else:
+                        continue
+                    break
             dtran[curr_index].append([sym, dstates.index(new_state)])
 
-    return dstates, dtran, acc_states
+    return dstates, dtran, acc_states, pattern_descs
 
 
 if __name__ == "__main__":
@@ -128,12 +139,14 @@ if __name__ == "__main__":
     #print_matrix(mat_2)
     mat_3 = [[['a', 0], ['b', 1], ['eps']], [['b', 1], ['eps']]]
     #print_matrix(mat_3)
-    pattern_dict = [('pat1', mat_1), ('pat2', mat_2), ('pat3', mat_3)]
+    pattern_descs = [PatternDesc('pat1', '', mat_1), PatternDesc('pat2', '', mat_2), PatternDesc('pat3', '', mat_3)]
 
-    (nfa, pattern_acc_states) = combine_nfas(pattern_dict)
+    (nfa, pattern_descs) = combine_nfas(pattern_descs)
     #print_matrix(nfa)
 
-    (dstates, dtran, dfa_acc_states) = nfa_to_dfa(nfa, pattern_acc_states)
+    (dstates, dtran, dfa_acc_states, pattern_descs) = nfa_to_dfa(nfa, pattern_descs)
     print_dfa(dstates, dtran, dfa_acc_states)
-    print(pattern_acc_states)
-    print(dfa_acc_states)
+    for patt in pattern_descs:
+        print(patt)
+    #print(pattern_acc_states)
+    #print(dfa_acc_states)

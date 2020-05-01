@@ -1,3 +1,4 @@
+from pattern_descriptor import PatternDesc
 from regex_parser import parse, NodeType
 from regex_lexer import tokenize_regex
 import networkx as nx
@@ -156,28 +157,29 @@ def regex_to_nfa(root):
 # we need a way to combine all the resulting NFAs into one, which will be transformed to DFA
 # we introduce a new starting state for the big NFA which has outgoing transitions on epsilon to starting states of
 # all the individual NFAs
-# alongside the new NFA transition matrix, function also returns a set of accepting states of all the individual NFAs
-def combine_nfas(nfas):
+# alongside the new NFA transition matrix, function also returns a list of PatternDesc objects with their respective
+# NFA accepting states calculated
+def combine_nfas(patt_descs):
     combined_nfa = [[['eps']]]
-    accepting_states = {}
 
     # if there is only one pattern in the list, don't bother
-    if len(nfas) == 1:
-        return nfas[0][1],  {len(nfas[0][1]) - 1: nfas[0][0]}
+    if len(patt_descs) == 1:
+        patt_descs[0].nfa_acc_state = len(patt_descs[0].nfa) - 1
+        return patt_descs[0].nfa, patt_descs
 
     current_nfa_starting_state = 1
     offset = 1
-    for pair in nfas:
-        nfa = pair[1]
+    for patt_desc in patt_descs:
+        nfa = patt_desc.nfa
         nfa = offset_outgoing_states(nfa, offset)
         for state in nfa:
             combined_nfa.append(state)
         combined_nfa[0][0].append(current_nfa_starting_state)
         current_nfa_starting_state += len(nfa)
         offset += len(nfa)
-        accepting_states[len(combined_nfa) - 1] = pair[0]
+        patt_desc.nfa_acc_state = len(combined_nfa) - 1
 
-    return combined_nfa, accepting_states
+    return combined_nfa, patt_descs
 
 
 if __name__ == "__main__":
@@ -186,10 +188,12 @@ if __name__ == "__main__":
     root_1 = parse(token_list_1)
     root_2 = parse(token_list_2)
     mat_1 = regex_to_nfa(root_1)
-    print_matrix(mat_1)
+    #print_matrix(mat_1)
     mat_2 = regex_to_nfa(root_2)
-    print_matrix(mat_2)
-    (mat, acc_states) = combine_nfas([mat_1, mat_2])
+    #print_matrix(mat_2)
+    patt_descs = [PatternDesc('pat1', '', mat_1), PatternDesc('pat2', '', mat_2)]
+    (mat, patt_descs) = combine_nfas(patt_descs)
     print(mat)
-    print(acc_states)
+    for patt_desc in patt_descs:
+        print(patt_desc)
     #visualize_graph(mat)
