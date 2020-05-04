@@ -124,8 +124,8 @@ def transform_union(left, right):
     start_state_right = len(left) + 1
     new_accept_state_index = len(left) + len(right) + 1
     # make the old accepting states point to the new accepting state
-    left[len(left) - 1][0].append(new_accept_state_index)
-    right[len(right) - 1][0].append(new_accept_state_index)
+    left[-1][0].append(new_accept_state_index)
+    right[-1][0].append(new_accept_state_index)
 
     # append the right NFA matrix to the left NFA matrix
     for state in right:
