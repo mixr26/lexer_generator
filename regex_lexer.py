@@ -188,22 +188,22 @@ def postprocess_token(token):
 
     # strip the ID and INTERVAL tokens of the unnecessary braces
     if token.type in (TokenType.ID, TokenType.INTERVAL):
-        token.lexeme = token.lexeme[1:len(token.lexeme) - 1]
+        token.lexeme = token.lexeme[1:-1]
 
-    return token
+    # create a token list for an interval expression
+    if token.type == TokenType.INTERVAL:
+        end = token.end
+        lexeme = token.lexeme
+        token = [(Token(TokenType.OPAR, '(', False))]
+        for i in range(ord(lexeme[0]), ord(lexeme[2]) + 1):
+            token.append(Token(TokenType.CHAR, chr(i), False))
+            if i != ord(lexeme[2]):
+                token.append(Token(TokenType.UNION, '|', False))
+        token.append(Token(TokenType.CPAR, ')', end))
 
+        return token
 
-# create a token list for an interval expression
-def postprocess_interval(token):
-    end = token.end
-    token_list = [(Token(TokenType.OPAR, '(', False))]
-    for i in range(ord(token.lexeme[0]), ord(token.lexeme[2]) + 1):
-        token_list.append(Token(TokenType.CHAR, chr(i), False))
-        if i != ord(token.lexeme[2]):
-            token_list.append(Token(TokenType.UNION, '|', False))
-    token_list.append(Token(TokenType.CPAR, ')', end))
-
-    return token_list
+    return [token]
 
 
 # extract the next regex token
@@ -229,7 +229,7 @@ def get_next_token(regex):
 
     # rollback
     regex = peek + regex
-    lexeme = lexeme[0:len(lexeme)-1]
+    lexeme = lexeme[0:-1]
 
     if is_accepting_state(old_state):
         return postprocess_token(Token(token_type_table[old_state.value], lexeme, False)), regex
@@ -256,18 +256,14 @@ def tokenize_regex(regex):
         # easier for the parser if it were explicit
         # we insert the concatenation operator token where appropriate
         if len(token_list) > 0:
-            prev = token_list[len(token_list) - 1]
-            if token.type in (TokenType.CHAR, TokenType.INTERVAL, TokenType.ID, TokenType.OPAR) and \
+            prev = token_list[-1]
+            first = token[0]
+            if first.type in (TokenType.CHAR, TokenType.INTERVAL, TokenType.ID, TokenType.OPAR) and \
                     prev.type in (TokenType.CHAR, TokenType.INTERVAL, TokenType.ID, TokenType.CPAR, TokenType.KLEENE):
                 token_list.append(Token(TokenType.CONCAT, '^', False))
+        token_list += token
 
-        token_list.append(token)
-        if token.type == TokenType.INTERVAL:
-            token_list.pop()
-            for tok in postprocess_interval(token):
-                token_list.append(tok)
-
-        if token.end:
+        if token_list[-1].end:
             break
 
     return token_list
