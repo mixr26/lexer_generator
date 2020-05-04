@@ -267,9 +267,3 @@ def tokenize_regex(regex):
             break
 
     return token_list
-
-
-if __name__ == "__main__":
-    token_list = tokenize_regex("([1-5][a-b])x|b*abc")
-    for token in token_list:
-        print(token)

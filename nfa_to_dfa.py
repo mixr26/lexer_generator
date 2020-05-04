@@ -1,7 +1,3 @@
-from pattern_descriptor import PatternDesc
-from regex_parser import parse
-from regex_lexer import tokenize_regex
-from regex_to_nfa import combine_nfas, regex_to_nfa, print_matrix
 import copy
 
 
@@ -126,27 +122,3 @@ def nfa_to_dfa(nfa, pattern_descs):
             dtran[curr_index].append([sym, dstates.index(new_state)])
 
     return dstates, dtran, acc_states, pattern_descs
-
-
-if __name__ == "__main__":
-    token_list_1 = tokenize_regex('a')
-    token_list_2 = tokenize_regex('abb')
-    root_1 = parse(token_list_1)
-    root_2 = parse(token_list_2)
-    mat_1 = regex_to_nfa(root_1)
-    #print_matrix(mat_1)
-    mat_2 = regex_to_nfa(root_2)
-    #print_matrix(mat_2)
-    mat_3 = [[['a', 0], ['b', 1], ['eps']], [['b', 1], ['eps']]]
-    #print_matrix(mat_3)
-    pattern_descs = [PatternDesc('pat1', '', mat_1), PatternDesc('pat2', '', mat_2), PatternDesc('pat3', '', mat_3)]
-
-    (nfa, pattern_descs) = combine_nfas(pattern_descs)
-    #print_matrix(nfa)
-
-    (dstates, dtran, dfa_acc_states, pattern_descs) = nfa_to_dfa(nfa, pattern_descs)
-    print_dfa(dstates, dtran, dfa_acc_states)
-    for patt in pattern_descs:
-        print(patt)
-    #print(pattern_acc_states)
-    #print(dfa_acc_states)

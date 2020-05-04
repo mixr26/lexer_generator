@@ -1,4 +1,4 @@
-from regex_lexer import tokenize_regex, TokenType
+from regex_lexer import TokenType
 from enum import Enum
 
 
@@ -168,9 +168,3 @@ def parse(tokens):
         stack.append(Node(NodeType.ERROR, ''))
 
     return stack[0]
-
-
-if __name__ == "__main__":
-    token_list = tokenize_regex("([1-2][a-b])x|b*abc")
-    root = parse(token_list)
-    print_tree_postorder(root)

@@ -1,10 +1,3 @@
-from pattern_descriptor import PatternDesc
-from regex_parser import parse
-from regex_lexer import tokenize_regex
-from regex_to_nfa import combine_nfas, regex_to_nfa, print_matrix
-from nfa_to_dfa import nfa_to_dfa, print_dfa
-
-
 # final stage of the lexer generator
 # generates a pair of .h and .cpp files that represent the specified lexer
 # since we generate c++ code, tokens and the lexer itself are represented by the eponymous classes
@@ -127,7 +120,7 @@ def create_header_and_emit_manifest(manifest, states_num):
 
 
 # open the source file and emit class method definitions
-def create_body(dstates, dtran, dfa_acc_states, nfa_acc_states):
+def create_body(dstates, dtran, dfa_acc_states, pattern_descs):
     with open("my_little_lexer.cpp", 'w') as body:
         # emit includes
         body.writelines([
@@ -252,26 +245,3 @@ def create_body(dstates, dtran, dfa_acc_states, nfa_acc_states):
         ])
 
         body.write("}\n\n")
-
-
-if __name__ == "__main__":
-    mat_1 = regex_to_nfa(parse(tokenize_regex("_[a-z][a-z]*")))
-    mat_2 = regex_to_nfa(parse(tokenize_regex("[1-9][1-9]*")))
-    mat_3 = regex_to_nfa(parse(tokenize_regex("( |\n)( |\n)*")))
-
-    pattern_descs = [PatternDesc("id_pat", "{ token->set_token_type(TOKEN_TYPE_ID); }", mat_1),
-                     PatternDesc("num_pat", "{ token->set_token_type(TOKEN_TYPE_NUM); }", mat_2),
-                     PatternDesc("ws_pat", "{ token->set_token_type(TOKEN_TYPE_WS); /*token->set_ignore(true);*/ }", mat_3)]
-
-    (nfa, pattern_descs) = combine_nfas(pattern_descs)
-
-    (dstates, dtran, dfa_acc_states, pattern_descs) = nfa_to_dfa(nfa, pattern_descs)
-    #print_matrix(dtran)
-    #print_dfa(dstates, dtran, dfa_acc_states)
-    #print(dfa_acc_states)
-    #for pattern_desc in pattern_descs:
-        #print(pattern_desc)
-
-    create_header_and_emit_manifest(["#define TOKEN_TYPE_WS 3\n", "#define TOKEN_TYPE_ID 4\n",
-                                     "#define TOKEN_TYPE_NUM 5\n"], len(dstates))
-    create_body(dstates, dtran, dfa_acc_states, pattern_descs)

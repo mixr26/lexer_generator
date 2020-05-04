@@ -1,6 +1,4 @@
-from pattern_descriptor import PatternDesc
-from regex_parser import parse, NodeType
-from regex_lexer import tokenize_regex
+from regex_parser import NodeType
 import networkx as nx
 import matplotlib.pyplot as plt
 
@@ -180,20 +178,3 @@ def combine_nfas(patt_descs):
         patt_desc.nfa_acc_state = len(combined_nfa) - 1
 
     return combined_nfa, patt_descs
-
-
-if __name__ == "__main__":
-    token_list_1 = tokenize_regex('a')
-    token_list_2 = tokenize_regex('b')
-    root_1 = parse(token_list_1)
-    root_2 = parse(token_list_2)
-    mat_1 = regex_to_nfa(root_1)
-    #print_matrix(mat_1)
-    mat_2 = regex_to_nfa(root_2)
-    #print_matrix(mat_2)
-    patt_descs = [PatternDesc('pat1', '', mat_1), PatternDesc('pat2', '', mat_2)]
-    (mat, patt_descs) = combine_nfas(patt_descs)
-    print(mat)
-    for patt_desc in patt_descs:
-        print(patt_desc)
-    #visualize_graph(mat)
