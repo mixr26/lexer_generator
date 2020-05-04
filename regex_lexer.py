@@ -150,7 +150,6 @@ class Token:
 # lexical error exception
 class LexerError(Exception):
     def __init__(self, message):
-        self.token = Token(TokenType.ERROR, '', True)
         self.message = message
 
     def __str__(self):
@@ -244,13 +243,7 @@ def tokenize_regex(regex):
     token_list = []
 
     while True:
-        try:
-            (token, regex) = get_next_token(regex)
-        except LexerError as le:
-            print(le)
-            token_list.clear()
-            token_list.append(le.token)
-            break
+        (token, regex) = get_next_token(regex)
 
         # concatenation operator is implicit (there is no input character for concatenation), but it would make the job
         # easier for the parser if it were explicit

@@ -34,7 +34,6 @@ def print_tree_postorder(root):
 # parsing error exception
 class ParserError(Exception):
     def __init__(self, message):
-        self.token = Node(NodeType.ERROR, '')
         self.message = message
 
     def __str__(self):
@@ -157,14 +156,9 @@ def union():
 def parse(tokens):
     global stack, token_list
     stack = []
-    try:
-        token_list = tokens
-        # load the first lookahead token
-        peek()
-        union()
-    except ParserError as pe:
-        print(pe)
-        stack.clear()
-        stack.append(Node(NodeType.ERROR, ''))
+    token_list = tokens
+    # load the first lookahead token
+    peek()
+    union()
 
     return stack[0]
