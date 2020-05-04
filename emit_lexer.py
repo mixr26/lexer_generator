@@ -49,35 +49,46 @@ def create_header_and_emit_manifest(manifest, states_num):
             "\t// Whether this token should be ignored.\n"
             "\tbool ignore;\n"
             "public:\n"
-            "\tToken() = delete;\n"
-            "\tToken(std::string lexeme, uint16_t token_type = TOKEN_TYPE_DEFAULT, bool last = false, int16_t line = "
+            "\tToken(std::string lexeme = \"\", uint16_t token_type = TOKEN_TYPE_DEFAULT, bool last = false, int16_t line = "
             "0, bool ignore = false)\n "
             "\t\t: lexeme(lexeme), token_type(token_type), last(last), line(line), ignore(ignore) {}\n\n"
             "\tvoid set_token_type(uint16_t token_type) { this->token_type = token_type; }\n"
             "\tvoid set_ignore(bool ignore) { this->ignore = ignore; }\n"
             "\tvoid set_lexeme(std::string lexeme) { this->lexeme = lexeme; }\n"
             "\tvoid set_last(bool last) { this->last = last; }\n\n"
-            "\tstd::string& get_lexeme() { return this->lexeme; }\n"
-            "\tbool is_last() { return this->last; }\n"
-            "\tuint16_t get_token_type() { return this->token_type; }\n"
-            "\tbool is_ignore() { return this->ignore; }\n"
-            "\tint16_t get_line() { return this->line; }\n"
+            "\tconst std::string& get_lexeme() const { return this->lexeme; }\n"
+            "\tbool is_last() const { return this->last; }\n"
+            "\tuint16_t get_token_type() const { return this->token_type; }\n"
+            "\tbool is_ignore() const { return this->ignore; }\n"
+            "\tint16_t get_line() const { return this->line; }\n"
             "};\n\n"
         ])
 
+        # emit overloaded << operator prototype for Token class
+        header.writelines([
+            "// << operator overload for the Token class\n"
+            "std::ostream& operator<<(std::ostream& os, const Token& tok);\n\n"
+        ])
+
         # emit States enum
-        header.write("// States of the lexer DFA.\n")
-        header.write("enum class States : uint32_t {\n")
-        header.write("\tS0 = 0,\n")
+        header.writelines([
+            "// States of the lexer DFA.\n"
+            "enum class States : uint32_t {\n"
+            "\tS0 = 0,\n"
+        ])
         for i in range (1, states_num):
             header.write("\tS" + str(i) + ",\n")
-        header.write("\tSE,\n")
-        header.write("\tBAD\n")
-        header.write("};\n\n")
+        header.writelines([
+            "\tSE,\n"
+            "\tBAD\n"
+            "};\n\n"
+        ])
 
         # emit Lexer class
-        header.write("// Takes a stream of characters from the input file and tokenizes them\n")
-        header.write("// into a stream of lexemes.\n\n")
+        header.writelines([
+            "// Takes a stream of characters from the input file and tokenizes them\n"
+            "// into a stream of lexemes.\n\n"
+        ])
 
         header.writelines([
             "class Lexer {\n"
@@ -126,6 +137,19 @@ def create_body(dstates, dtran, dfa_acc_states, nfa_acc_states):
             "#include \"my_little_lexer.h\"\n\n"
         ])
 
+        # emit overloaded << operator for Token class
+        body.writelines([
+            "// << operator overload for the Token class\n"
+            "std::ostream& operator<<(std::ostream& os, const Token& tok) {\n"
+            "\tos << \"Token type: \" << tok.get_token_type() << std::endl;\n"
+            "\tos << \"Lexeme: \" << tok.get_lexeme() << std::endl;\n"
+            "\tos << \"Line: \" << tok.get_line() << std::endl;\n"
+            "\tif (tok.is_last())\n"
+            "\t\tos << \"Last\" << std::endl;\n\n"
+            "\treturn os;\n"
+            "}\n\n"
+        ])
+
         # emit the functions which contain the user-provided code for each pattern
         for patt_desc in pattern_descs:
             if patt_desc.code != '':
@@ -149,7 +173,7 @@ def create_body(dstates, dtran, dfa_acc_states, nfa_acc_states):
         # emit the get_next_word Lexer method
         body.writelines([
             "std::shared_ptr<Token> Lexer::get_next_word() {\n"
-            "\tstd::shared_ptr<Token> tok;\n"
+            "\tstd::shared_ptr<Token> tok = std::make_shared<Token>();\n"
             "\twhile((tok = this->next_word())->is_ignore());\n"
             "\treturn tok;\n"
             "}\n\n"
