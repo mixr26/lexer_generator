@@ -176,7 +176,6 @@ if __name__ == "__main__":
         report_error("Incorrect number of command line arguments! Should be only the input file name!", 0)
 
     filename = sys.argv[1]
-    #filename = "input.mll"
     if ".mll" not in filename:
         print("Input file name should have .mll extension!")
         exit(1)
