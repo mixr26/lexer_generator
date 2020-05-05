@@ -100,6 +100,7 @@ def nfa_to_dfa(nfa, pattern_descs):
         input_syms = compute_possible_in_syms(curr_state, nfa)
         for sym in input_syms:
             new_state = eps_closure(move(curr_state, sym, nfa), nfa)
+            new_state.sort()
             if dstates.count(new_state) == 0:
                 dstates.append(new_state)
                 marked.append(False)
