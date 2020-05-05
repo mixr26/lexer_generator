@@ -1,5 +1,4 @@
 from enum import Enum
-from numpy import *
 
 
 # lexical analysis of regular expressions performed using a simple DFA simulation
@@ -45,7 +44,7 @@ class CharClass(Enum):
 
 # transition matrix of the regex lexical analyzer DFA
 # given the current state and the next input character, return the next DFA state
-transition_matrix = array([
+transition_matrix = [
     [States.SE, States.SE, States.SE, States.SE, States.SE, States.SE, States.SE, States.SE, States.SE, States.SE,
      States.SE, States.SE],
     [States.S10, States.S10, States.S1, States.SE, States.S3, States.SE, States.SE, States.S11, States.S11, States.S11,
@@ -80,7 +79,7 @@ transition_matrix = array([
      States.SE, States.SE],
     [States.SE, States.SE, States.SE, States.SE, States.SE, States.S9, States.SE, States.SE, States.SE, States.SE,
      States.SE, States.SE]
-])
+]
 
 
 def is_accepting_state(state):
