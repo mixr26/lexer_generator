@@ -1,6 +1,4 @@
 from regex_parser import NodeType
-import networkx as nx
-import matplotlib.pyplot as plt
 
 # transformation of regex ASTs to non-deterministic finite automata (NFAs) using the McNaughton-Yamada-Thompson
 # algorithm
@@ -19,25 +17,6 @@ import matplotlib.pyplot as plt
 # accepting state
 #
 # [1] The Dragon Book, 2nd Ed, p. 161
-
-
-# helper function which visualizes the graph
-def visualize_graph(mat):
-    graph = nx.DiGraph()
-
-    for i in range(0, len(mat)):
-        for in_sym in mat[i]:
-            if in_sym[0] == 'eps':
-                if len(in_sym) == 1:
-                    continue
-                elif len(in_sym) == 3:
-                    graph.add_edge(i, in_sym[2], sym='eps')
-                graph.add_edge(i, in_sym[1], sym='eps')
-            else:
-                graph.add_edge(i, in_sym[1], sym=in_sym[0])
-
-    nx.draw(graph, with_labels=True)
-    plt.show()
 
 
 # helper function which prints the matrix
