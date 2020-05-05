@@ -144,7 +144,7 @@ def create_body(dstates, dtran, dfa_acc_states, pattern_descs):
         # emit the functions which contain the user-provided code for each pattern
         for patt_desc in pattern_descs:
             if patt_desc.code != '':
-                body.write("void " + patt_desc.name + "(std::shared_ptr<Token> token)\n")
+                body.write("void " + patt_desc.name + "__(std::shared_ptr<Token> token)\n")
                 body.write(patt_desc.code)
                 body.write("\n\n")
 
@@ -231,7 +231,7 @@ def create_body(dstates, dtran, dfa_acc_states, pattern_descs):
         for patt_desc in pattern_descs:
             for dfa_acc_state in patt_desc.dfa_acc_states:
                 body.write("\t\tcase States::S" + str(dfa_acc_state) + ":\n")
-                body.write("\t\t\t" + patt_desc.name + "(tok);\n")
+                body.write("\t\t\t" + patt_desc.name + "__(tok);\n")
                 body.write("\t\t\tbreak;\n")
         body.write("\t\t}\n")
 
