@@ -1,0 +1,7 @@
+var = 1
+VAR = 2
+
+if var == VAR then
+    var = 56.3254
+else
+    VAR = 0.46443
