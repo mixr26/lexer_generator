@@ -3,7 +3,7 @@
 ## Introduction
 This is my take on the lexical analyzer generator in the style of Flex.
 
-It is not meant to be particularly fast or efficient, it was just meant to crystallize the concepts
+It is not meant to be particularly fast or efficient, it is just meant to crystallize the concepts
 of lexical analysis described in Chapter 3 of the 'Dragon Book' [1], hence Python was used as the programming tool.
 
 Lexical analyzer generator is a tool which takes a specification of a language and creates a lexical analyzer which
