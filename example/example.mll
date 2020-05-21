@@ -1,13 +1,14 @@
 _manifest:
-    #define TOKEN_TYPE_ID 3
-    #define TOKEN_TYPE_FLOAT 4
-    #define TOKEN_TYPE_WS 5
-    #define TOKEN_TYPE_NUM 6
-    #define TOKEN_TYPE_IF 7
-    #define TOKEN_TYPE_THEN 8
-    #define TOKEN_TYPE_ELSE 9
-    #define TOKEN_TYPE_EQ 10
-    #define TOKEN_TYPE_ASSIGN 11
+_tokens:
+    ID
+    FLOAT
+    WS
+    NUM
+    IF
+    THEN
+    ELSE
+    EQ
+    ASSIGN
 _defines:
     whitespace     %{ |\n}%
     digit          %{[1-9]}%
@@ -15,12 +16,12 @@ _defines:
     number         %{{digit}{digit}*}%
     word           %{{letter}{letter}*}%
 _patterns:
-    ws             %{{whitespace}*}%                #{ token->set_token_type(TOKEN_TYPE_WS); token->set_ignore(true); }#
-    num            %{{number}}%                     #{ token->set_token_type(TOKEN_TYPE_NUM); }#
-    float          %{(0|{number}).[0-9]*}%          #{ token->set_token_type(TOKEN_TYPE_FLOAT); }#
-    if             %{if}%                           #{ token->set_token_type(TOKEN_TYPE_IF); }#
-    then           %{then}%                         #{ token->set_token_type(TOKEN_TYPE_THEN); }#
-    else           %{else}%                         #{ token->set_token_type(TOKEN_TYPE_ELSE); }#
-    eq             %{==}%                           #{ token->set_token_type(TOKEN_TYPE_EQ); }#
-    assign         %{=}%                            #{ token->set_token_type(TOKEN_TYPE_ASSIGN); }#
-    identifier     %{{word}}%                       #{ token->set_token_type(TOKEN_TYPE_ID); }#
+    ws             %{{whitespace}*}%                #{ token->set_token_type(WS); token->set_ignore(true); }#
+    num            %{{number}}%                     #{ token->set_token_type(NUM); }#
+    float          %{(0|{number}).[0-9]*}%          #{ token->set_token_type(FLOAT); }#
+    if             %{if}%                           #{ token->set_token_type(IF); }#
+    then           %{then}%                         #{ token->set_token_type(THEN); }#
+    else           %{else}%                         #{ token->set_token_type(ELSE); }#
+    eq             %{==}%                           #{ token->set_token_type(EQ); }#
+    assign         %{=}%                            #{ token->set_token_type(ASSIGN); }#
+    identifier     %{{word}}%                       #{ token->set_token_type(ID); }#

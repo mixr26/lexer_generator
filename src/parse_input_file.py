@@ -73,12 +73,33 @@ def collect_manifest_code(file, line_num):
         file_pos = file.tell()
         line = file.readline()
         line_num += 1
-        if not line or "_defines:" in line:
+        if not line or "_tokens:" in line:
             file.seek(file_pos)
             break
         manifest_code += line
 
     return manifest_code, line_num
+
+
+# parse the token definitions
+def collect_tokens(file, line_num):
+    tokens = file.readline().strip()
+    line_num += 1
+    if tokens != "_tokens:":
+        report_error("_tokens: label not found!", line_num)
+
+    token_list = []
+    while True:
+        file_pos = file.tell()
+        line = file.readline()
+        line_num += 1
+        if not line or "_defines:" in line:
+            file.seek(file_pos)
+            break
+
+        token_list.append(line.strip())
+
+    return token_list, line_num
 
 
 # populate the ID table of the regex parser
@@ -121,7 +142,7 @@ def hash_identifiers(file, line_num):
 
 
 # parse the regex patterns and emit the finished lexical analyzer
-def do_the_magic(file, line_num, manifest_code):
+def do_the_magic(file, line_num, manifest_code, tokens):
     patterns = file.readline().strip()
     line_num += 1
     if patterns != "_patterns:":
@@ -167,8 +188,8 @@ def do_the_magic(file, line_num, manifest_code):
     (dstates, dtran, dfa_acc_states, pattern_descs) = nfa_to_dfa(nfa, pattern_descs)
 
     # emit the actual lexer code
-    create_header_and_emit_manifest(manifest_code, len(dstates))
-    create_body(dstates, dtran, dfa_acc_states, pattern_descs)
+    create_header_and_emit_manifest(manifest_code, tokens, len(dstates))
+    create_body(dstates, dtran, dfa_acc_states, pattern_descs, tokens)
 
 
 if __name__ == "__main__":
@@ -185,8 +206,11 @@ if __name__ == "__main__":
         # collect the manifest code
         (manifest_code, line_num) = collect_manifest_code(file, line_num)
 
+        # collect token definitions
+        (token_list, line_num) = collect_tokens(file, line_num)
+
         # collect the defines
         line_num = hash_identifiers(file, line_num)
 
         # parse the regex patterns and emit lexer code
-        do_the_magic(file, line_num, manifest_code)
+        do_the_magic(file, line_num, manifest_code, token_list)

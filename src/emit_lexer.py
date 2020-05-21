@@ -8,7 +8,7 @@
 
 # open the header file and emit necessary class and enum declarations (eg. Token class, States enum, etc.)
 # also emit manifest code, which is provided by the user in the first part of the input file
-def create_header_and_emit_manifest(manifest, states_num):
+def create_header_and_emit_manifest(manifest, token_list, states_num):
     with open("my_little_lexer.h", 'w') as header:
         # emit header guards and includes
         header.writelines([
@@ -22,9 +22,19 @@ def create_header_and_emit_manifest(manifest, states_num):
             "#include <memory>\n"
             "#include <functional>\n"
             "#include <cstdint>\n\n"
-            "#define TOKEN_TYPE_ERROR 0\n"
-            "#define TOKEN_TYPE_LAST 1\n"
-            "#define TOKEN_TYPE_DEFAULT 2\n\n"
+        ])
+
+        # emit an enum representing the token types
+        token_num = 0
+        header.write("enum class TokenType : uint16_t {\n")
+        for token in token_list:
+            header.write("\t" + token + " = " + str(token_num) + ",\n")
+            token_num += 1
+        header.writelines([
+            "\tERROR = " + str(token_num) + ",\n"
+            "\tLAST = " + str(token_num + 1) + ",\n"
+            "\tDEFAULT = " + str(token_num + 2) + "\n"
+            "};\n\n"
         ])
 
         # emit manifest code
@@ -34,7 +44,7 @@ def create_header_and_emit_manifest(manifest, states_num):
         # emit Token class
         header.writelines([
             "class Token {\n"
-            "\tuint16_t token_type;\n"
+            "\tTokenType token_type;\n"
             "\tstd::string lexeme;\n"
             "\t// Line in input file which contains this lexeme. Currently only used for\n"
             "\t// error reporting.\n"
@@ -43,14 +53,14 @@ def create_header_and_emit_manifest(manifest, states_num):
             "\tbool ignore;\n"
             "public:\n"
             "\tToken() = delete;\n"
-            "\tToken(std::string lexeme = \"\", uint16_t token_type = TOKEN_TYPE_DEFAULT, int16_t line = "
+            "\tToken(std::string lexeme = \"\", TokenType token_type = TokenType::DEFAULT, int16_t line = "
             "0, bool ignore = false)\n "
             "\t\t: lexeme(lexeme), token_type(token_type), line(line), ignore(ignore) {}\n\n"
-            "\tvoid set_token_type(uint16_t token_type) { this->token_type = token_type; }\n"
+            "\tvoid set_token_type(TokenType token_type) { this->token_type = token_type; }\n"
             "\tvoid set_ignore(bool ignore) { this->ignore = ignore; }\n"
             "\tvoid set_lexeme(std::string lexeme) { this->lexeme = lexeme; }\n\n"
             "\tconst std::string& get_lexeme() const { return this->lexeme; }\n"
-            "\tuint16_t get_token_type() const { return this->token_type; }\n"
+            "\tTokenType get_token_type() const { return this->token_type; }\n"
             "\tbool is_ignore() const { return this->ignore; }\n"
             "\tint16_t get_line() const { return this->line; }\n"
             "};\n\n"
@@ -127,7 +137,7 @@ def create_header_and_emit_manifest(manifest, states_num):
 
 
 # open the source file and emit class method definitions
-def create_body(dstates, dtran, dfa_acc_states, pattern_descs):
+def create_body(dstates, dtran, dfa_acc_states, pattern_descs, token_list):
     with open("my_little_lexer.cpp", 'w') as body:
         # emit includes
         body.writelines([
@@ -139,10 +149,10 @@ def create_body(dstates, dtran, dfa_acc_states, pattern_descs):
         body.writelines([
             "// << operator overload for the Token class\n"
             "std::ostream& operator<<(std::ostream& os, const Token& tok) {\n"
-            "\tos << \"Token type: \" << tok.get_token_type() << std::endl;\n"
+            "\tos << \"Token type: \" << static_cast<uint16_t>(tok.get_token_type()) << std::endl;\n"
             "\tos << \"Lexeme: \" << tok.get_lexeme() << std::endl;\n"
             "\tos << \"Line: \" << tok.get_line() << std::endl;\n"
-            "\tif (tok.get_token_type() == TOKEN_TYPE_LAST)\n"
+            "\tif (tok.get_token_type() == TokenType::LAST)\n"
             "\t\tos << \"Last\" << std::endl;\n\n"
             "\treturn os;\n"
             "}\n\n"
@@ -152,6 +162,9 @@ def create_body(dstates, dtran, dfa_acc_states, pattern_descs):
         for patt_desc in pattern_descs:
             if patt_desc.code != '':
                 body.write("void " + patt_desc.name + "__(std::shared_ptr<Token> token)\n")
+                for token in token_list:
+                    if token in patt_desc.code:
+                        patt_desc.code = patt_desc.code.replace(token, "TokenType::" + token)
                 body.write(patt_desc.code)
                 body.write("\n\n")
 
@@ -228,7 +241,7 @@ def create_body(dstates, dtran, dfa_acc_states, pattern_descs):
             "\t\t\tlexeme.pop_back();\n"
             "\t\tthis->rollback();\n"
             "\t}\n\n"
-            "\tstd::shared_ptr<Token> tok{std::make_shared<Token>(lexeme, TOKEN_TYPE_DEFAULT, line, false)};\n"
+            "\tstd::shared_ptr<Token> tok{std::make_shared<Token>(lexeme, TokenType::DEFAULT, line, false)};\n"
             "\tif (this->is_accepting_state(this->state)) {\n"
         ])
 
@@ -245,9 +258,9 @@ def create_body(dstates, dtran, dfa_acc_states, pattern_descs):
         body.writelines([
             "\t}\n"
             "\telse if (c == std::char_traits<char>::eof())\n"
-            "\t\ttok->set_token_type(TOKEN_TYPE_LAST);\n"
+            "\t\ttok->set_token_type(TokenType::LAST);\n"
             "\telse\n"
-            "\t\ttok->set_token_type(TOKEN_TYPE_ERROR);\n\n"
+            "\t\ttok->set_token_type(TokenType::ERROR);\n\n"
             "\treturn tok;\n"
         ])
 
