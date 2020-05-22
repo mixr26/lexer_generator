@@ -60,6 +60,7 @@ Input file which contains the language description must have an '.mll' extension
 It must have three distinct sections:
   * Manifest section contains user-written C++ code which will be inserted in the generated lexer's header file as-is.
   It begins with a label '_manifest:'.
+  * Tokens section should be used to define token types, which can subsequently be used in set_token_type method. If this lexer generator is used as input to my parser generator, then the token sections of lexer and parser generators MUST look exactly the same. Token types described here will be enumerated as a part of TokenType enum.
   * Defines section can be used to give names to some frequently used regex patterns. Instead of writing the whole pattern
   later in the language description, its name could be used instead, enclosed in curly braces. This section begins with a
   label '_defines:'
@@ -78,7 +79,7 @@ It must have three distinct sections:
   Available *Token* class methods are:
   
         // Set the token type.
-        void set_token_type(uint16_t token_type) { this->token_type = token_type; }
+        void set_token_type(TokenType token_type) { this->token_type = token_type; }
         // Whether the lexer should return this token, or just ignore it and search for the next.
         void set_ignore(bool ignore) { this->ignore = ignore; }
         // Set the lexeme of the token.
@@ -87,7 +88,7 @@ It must have three distinct sections:
         // Get the lexeme of the token.
         const std::string& get_lexeme() const { return this->lexeme; }
         // Get the token type.
-        uint16_t get_token_type() const { return this->token_type; }
+        TokenType get_token_type() const { return this->token_type; }
         // Whether this token should be ignored by the lexer.
         bool is_ignore() const { return this->ignore; }
         // Get the line of the input program on which this token was found.
