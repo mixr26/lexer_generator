@@ -31,8 +31,8 @@ def create_header_and_emit_manifest(manifest, token_list, states_num):
             header.write("\t" + token + " = " + str(token_num) + ",\n")
             token_num += 1
         header.writelines([
-            "\tERROR = " + str(token_num) + ",\n"
-            "\tLAST = " + str(token_num + 1) + ",\n"
+            "\tLAST = " + str(token_num) + ",\n"
+            "\tERROR = " + str(token_num + 1) + ",\n"
             "\tDEFAULT = " + str(token_num + 2) + "\n"
             "};\n\n"
         ])
