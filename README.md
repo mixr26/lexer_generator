@@ -57,7 +57,7 @@ scanner from [1]. **emit_lexer.py** contains the code.
 
 ## Input file description
 Input file which contains the language description must have an '.mll' extension.
-It must have three distinct sections:
+It must have four distinct sections:
   * Manifest section contains user-written C++ code which will be inserted in the generated lexer's header file as-is.
   It begins with a label '_manifest:'.
   * Tokens section should be used to define token types, which can subsequently be used in set_token_type method. If this lexer generator is used as input to my parser generator, then the token sections of lexer and parser generators MUST look exactly the same. Token types described here will be enumerated as a part of TokenType enum.
