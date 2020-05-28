@@ -179,6 +179,10 @@ def postprocess_token(token):
         else:
             token.type = TokenType.KLEENE
 
+    # if we have an escape character '\' in a CHAR that is not a tab or newline, remove it
+    if token.type == TokenType.CHAR and len(token.lexeme) > 1 and token.lexeme[0] == '\\':
+        token.lexeme = token.lexeme[1:len(token.lexeme)]
+
     if token.type == TokenType.INTERVAL:
         if (token.lexeme[1] > token.lexeme[3]) or \
                 (token.lexeme[1].isupper() and token.lexeme[3].islower()):
